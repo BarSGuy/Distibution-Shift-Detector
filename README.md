@@ -27,13 +27,16 @@ clone and install this repository:
     cd Distibution-Shift-Detector
     pip install -r requirements.txt
 
+download pretrained weights for resnet18 (resnet18.pt) from the following [link](https://drive.google.com/file/d/17fmN8eQdLpq2jIMQ_X0IXDPXfI9oVWgq/view),
+and place it in the path './models/state_dicts/resnet18.pt'
+
 run the following command
 
     main.py
 
 
 
-## Example Usage
+## Detect a distribution shift on you own dataset
 
 
 Copy the Detector file to your project, and set the desired parameters and the distribution shift detector
