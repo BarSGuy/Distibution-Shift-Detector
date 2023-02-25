@@ -7,27 +7,6 @@ The method aims to detect deviations in the input distribution that could potent
 The proposed method is based on selective prediction principles and involves continuously monitoring the network's operation over a test window and firing off an alarm when a deviation is detected.
 The method outperforms the state-of-the-art approaches for this task on the CIFAR-10 and ImageNet datasets while being more efficient in time and space complexities.
 
-## Example Usage
-### To clone and install this repository run the following commands:
-
-    git clone https://github.com/BarSGuy/Distibution-Shift-Detector.git
-    cd Distibution-Shift-Detector
-    pip install -r requirements.txt
-
-### Example Run
-Copy the Detector file to your project.
-Inference your in-distribution data through you classifier, and extract the $\kappa$ for each input. 
-
-    from Detector import Shift_Detector as SH
-    number_of_coverages = 10
-    delta = 0.0001
-    shift_detector = Shift_Detector(C_num=number_of_coverages, delta=delta)
-    us_of_in_dist = 
-
-    detector.fit_lower_bound(us_in_dist)
-    under_confidence_score = detector.detect_lower_bound_deviation(us_window)
-    detector.visualize_lower_bound()
-
 
 ## Demo
 When using the CIFAR-10 dataset as in-distribution and the CIFAR-100 dataset as out-of-distribution, the lower bound is violated
@@ -42,41 +21,47 @@ When using the CIFAR-10 dataset both for in distribution data and out-of-distrib
 
 ## Reproduce The Demo
 
+clone and install this repository:
 
-## To run it on you own in-distribution and out-of-distribution data
+    git clone https://github.com/BarSGuy/Distibution-Shift-Detector.git
+    cd Distibution-Shift-Detector
+    pip install -r requirements.txt
 
-    usage: transboost.py [-h] [--dev DEV] --gpus GPUS [--resume RESUME] --data-dir DATA_DIR [--num-workers NUM_WORKERS] [--wandb]
-                     [--gpu-monitor] [--data DATA] --model MODEL [--seed SEED] [--max-epochs MAX_EPOCHS]
-                     [--batch-size BATCH_SIZE] [--optimizer OPTIMIZER] [--learning-rate LEARNING_RATE] [--cosine]
-                     [--weight-decay WEIGHT_DECAY] [--lamda LAMDA] [--test-only]
+run the following command
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      --dev DEV             debugging mode
-      --gpus GPUS           number of gpus
-      --resume RESUME       path
-      --data-dir DATA_DIR   data dir
-      --num-workers NUM_WORKERS
-                            number of cpus per gpu
-      --wandb               logging in wandb
-      --gpu-monitor         monitors gpus. Note: slowing the training process
-      --data DATA           dataset name
-      --model MODEL         model name
-      --seed SEED           seed
-      --max-epochs MAX_EPOCHS
-                            number of fine-tuning epochs
-      --batch-size BATCH_SIZE
-                            batchsize for each gpu, for each train/test. i.e.: actual batchsize = 128 x num_gpus x 2
-      --optimizer OPTIMIZER
-      --learning-rate LEARNING_RATE
-      --cosine              apply cosine annealing lr scheduler
-      --weight-decay WEIGHT_DECAY
-      --lamda LAMDA         TransBoost loss hyperparameter
-      --test-only           run testing only
+    main.py
 
-For example, to reproduce our result on **ResNet50** in **ImageNet**, run:
 
-    python transboost.py --gpus 4 --data-dir /path-to-data-folder/ImageNet --model resnet50
+
+## Example Usage
+
+
+Copy the Detector file to your project, and set the desired parameters and the distribution shift detector
+    
+    from Detector import Shift_Detector as SH
+    number_of_coverages = 10
+    delta = 0.0001
+    shift_detector = Shift_Detector(C_num=number_of_coverages, delta=delta)
+
+Inference your in-distribution data through you classifier, extract the $\kappa(x)$ for each input $x$, and fit the detector.
+You can use our implementation of Softmax Response (SR) on you logits
+    
+    from Detector import get_softmax_responses as SR
+    kappa_in_dist = SR(in_distribution_logits)
+    detector.fit_lower_bound(kappa_in_dist)
+
+and then check drifts on potentially out of distribution data with
+    
+    kappa_out_dist = SR(out_of_distribution_logits)
+    p_val = detector.detect_lower_bound_deviation(kappa_out_dist, return_p_value=True)
+    if p_val < 0.01:
+        raise RuntimeError("Drifted Inputs")
+    
+You can also visualize the drift per coverage
+    
+    shift_detector.visualize_lower_bound()
+
+
 
 ## Citation
 
