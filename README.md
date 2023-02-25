@@ -41,10 +41,10 @@ run the following command
 
 Copy the Detector file to your project, and set the desired parameters and the distribution shift detector
     
-    from Detector import Shift_Detector as SH
+    from Detector import Shift_Detector as SD
     number_of_coverages = 10
     delta = 0.0001
-    shift_detector = Shift_Detector(C_num=number_of_coverages, delta=delta)
+    shift_detector = SD(C_num=number_of_coverages, delta=delta)
 
 Inference your in-distribution data through you classifier, extract the $\kappa(x)$ for each input $x$, and fit the detector.
 You can use our implementation of Softmax Response (SR) on you logits
