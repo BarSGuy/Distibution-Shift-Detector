@@ -15,7 +15,7 @@ When using the CIFAR-10 dataset as in-distribution and the CIFAR-100 dataset as 
 ![results](figures/demo_in_vs_out.png)
 
 When using the CIFAR-10 dataset both for in distribution data and out-of-distribution data, the bound holds
-(we use the Softmax Response (SR) of a ResNet18 as our confidence-rate function).
+(again, we use the Softmax Response (SR) of a ResNet18 as our confidence-rate function).
 
 ![results](figures/demo_in_vs_in.png)
 
@@ -38,7 +38,6 @@ run the following command
 
 ## Detect a distribution shift on you own dataset
 
-
 Copy the Detector file to your project, and set the desired parameters and the distribution shift detector
     
     from Detector import Shift_Detector as SD
@@ -46,21 +45,21 @@ Copy the Detector file to your project, and set the desired parameters and the d
     delta = 0.0001
     shift_detector = SD(C_num=number_of_coverages, delta=delta)
 
-Inference your in-distribution data through you classifier, extract the $\kappa(x)$ for each input $x$, and fit the detector.
+Inference your in-distribution data through your classifier, extract the $\kappa(x)$ for each input $x$, and fit the detector.
 You can use our implementation of Softmax Response (SR) on you logits
     
     from Detector import get_softmax_responses as SR
     kappa_in_dist = SR(in_distribution_logits)
     detector.fit_lower_bound(kappa_in_dist)
 
-and then check drifts on potentially out of distribution data with
+and then check drifts on potentially out of distribution data
     
     kappa_out_dist = SR(out_of_distribution_logits)
     p_val = detector.detect_lower_bound_deviation(kappa_out_dist, return_p_value=True)
     if p_val < 0.01:
         raise RuntimeError("Drifted Inputs")
     
-You can also visualize the drift per coverage
+You can also visualize the drift per coverage (as in the demo)
     
     shift_detector.visualize_lower_bound()
 
