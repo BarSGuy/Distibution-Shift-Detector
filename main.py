@@ -171,12 +171,12 @@ def detect_experiment(cfg):
     # set seeds
     pl.seed_everything(cfg.SEED)
     # setting the in-distribution data module
-    in_distribution_data_module = CIFAR10DataModule(test_size=cfg.IN_DISTRIBUTION_SIZE)
+    in_distribution_data_module = CIFAR10DataModule()
     # setting the out-of-distribution data module
     if cfg.OUT_OF_DISTRIBUTION == 'Cifar100':
-        out_of_distribution_data_module = CIFAR100DataModule(test_size=cfg.OUT_OF_DISTRIBUTION_SIZE)
+        out_of_distribution_data_module = CIFAR100DataModule()
     elif cfg.OUT_OF_DISTRIBUTION == 'Cifar10':
-        out_of_distribution_data_module = CIFAR10DataModule(test_size=cfg.OUT_OF_DISTRIBUTION_SIZE)
+        out_of_distribution_data_module = CIFAR10DataModule()
     else:
         raise ValueError('Invalid OUT_OF_DISTRIBUTION_DATA value.')
     # getting all logits
@@ -229,6 +229,11 @@ def detect_experiment(cfg):
 
 
 if __name__ == '__main__':
+    from experiments import experiments
+    experiments.single_instance_comparison()
+    # experiments.label_shift_experiments()
+    exit()
+    # ---------------------------- Github ---------------------------- #
     with open("config.yml", "r") as file:
         cfg = yaml.safe_load(file)
         cfg = edict(cfg)
