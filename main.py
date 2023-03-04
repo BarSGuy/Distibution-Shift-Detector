@@ -5,6 +5,8 @@ import yaml
 from easydict import EasyDict as edict
 from models import resnets
 import math
+import random
+
 
 # ============================== Confidence-rate functions ============================== #
 def get_softmax_responses_inline(logits_list):
@@ -21,6 +23,7 @@ def get_softmax_responses_inline(logits_list):
         SR = torch.max(softmax).item()
         SR_list.append(SR)
     return SR_list
+
 
 def get_entropy_responses_inline(logits_list, num_classes):
     """
@@ -47,8 +50,11 @@ def get_entropy_responses_inline(logits_list, num_classes):
 class CIFAR10DataModule(pl.LightningDataModule):
     """A PyTorch Lightning data module for the CIFAR10 dataset."""
 
-    def __init__(self, test_size=10000):
+    def __init__(self,
+                 classes=('airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'),
+                 test_size=10000):
         super().__init__()
+        self.classes = classes
         self.test_size = test_size
 
     def prepare_data(self):
@@ -62,8 +68,14 @@ class CIFAR10DataModule(pl.LightningDataModule):
             torchvision.transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2471, 0.2435, 0.2616))
         ])
         full_test_set = torchvision.datasets.CIFAR10(root='./data', train=False, transform=transform)
-        self.test_set, _ = torch.utils.data.random_split(full_test_set,
+        full_test_set, _ = torch.utils.data.random_split(full_test_set,
                                                          [self.test_size, len(full_test_set) - self.test_size])
+
+        # Filter the dataset to include only the selected classes
+        indices = [i for (i, y) in enumerate(full_test_set.dataset.targets) if
+                   full_test_set.dataset.classes[y] in self.classes]
+
+        self.test_set = torch.utils.data.Subset(full_test_set, indices)
 
     def test_dataloader(self):
         """Returns a data loader for the test set."""
@@ -156,13 +168,15 @@ def inference(data_module, model, num_gpus=1):
 # ============================== Detection experiment ============================== #
 
 def detect_experiment(cfg):
+    # set seeds
+    pl.seed_everything(cfg.SEED)
     # setting the in-distribution data module
-    in_distribution_data_module = CIFAR10DataModule(cfg.IN_DISTRIBUTION_SIZE)
+    in_distribution_data_module = CIFAR10DataModule(test_size=cfg.IN_DISTRIBUTION_SIZE)
     # setting the out-of-distribution data module
     if cfg.OUT_OF_DISTRIBUTION == 'Cifar100':
         out_of_distribution_data_module = CIFAR100DataModule(test_size=cfg.OUT_OF_DISTRIBUTION_SIZE)
     elif cfg.OUT_OF_DISTRIBUTION == 'Cifar10':
-        out_of_distribution_data_module = CIFAR10DataModule(cfg.OUT_OF_DISTRIBUTION_SIZE)
+        out_of_distribution_data_module = CIFAR10DataModule(test_size=cfg.OUT_OF_DISTRIBUTION_SIZE)
     else:
         raise ValueError('Invalid OUT_OF_DISTRIBUTION_DATA value.')
     # getting all logits
@@ -212,8 +226,6 @@ def detect_experiment(cfg):
         detector.visualize_upper_bound("upper bound; Cifar10 (in-dist) vs Cifar10 (out-dist)")
 
     get_Cifar10_vs_Cifar10_inline()
-
-
 
 
 if __name__ == '__main__':
