@@ -197,7 +197,7 @@ def detect_experiment(cfg):
     SR_list_out_dist = get_softmax_responses_inline(out_of_distribution_logits)
 
     from Detector import Shift_Detector as SH
-    C_num = math.log(cfg.IN_DISTRIBUTION_SIZE)
+    C_num = math.log(len(SR_list_in_dist))
     delta = 0.0001
     detector = SH(C_num, delta)
     detector.fit_lower_bound(SR_list_in_dist_to_fit)
